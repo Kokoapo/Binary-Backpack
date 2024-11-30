@@ -1,8 +1,9 @@
+import sys
 from greedy import greedy
 from brute import brute
 import matplotlib.pyplot as plt
 import os, time
-run_what = "g"
+run_what = "b"
 DIR_NAME = 'Mochilas'
 MAX_BRUTE_SIZE = 5000
 
@@ -61,7 +62,7 @@ def run_brute(max_weight, values, weights):
     s_time = time.time()
     brute(values, weights, max_weight)
     duration = time.time() - s_time
-    if(duration>900):
+    if(duration>3600):
         global MAX_BRUTE_SIZE
         MAX_BRUTE_SIZE=len(weights)
     print(f"Brute: size={len(weights)}, runtime={duration}")
@@ -72,7 +73,7 @@ if __name__ == '__main__':
     files = os.listdir(DIR_NAME)
     sizes = get_sizes_per_files(files)
     files = sort_files_per_sizes(sizes)
-
+    brute_run_size=10
     for file, size in zip(files, sizes):
         max_weight, values, weights = read_single_file(file)
         if run_what=="g":
@@ -80,8 +81,11 @@ if __name__ == '__main__':
             real_sizes.append(size)
             durations.append(duration)
         if run_what=="b":
-            if (len(weights) <= MAX_BRUTE_SIZE):
-                size, duration=run_brute(max_weight, values, weights)
-                real_sizes.append(size)
-                durations.append(duration)
-    save_backup_file("greedy" if run_what=="g" else "brute" if run_what=="b" else "?", real_sizes, durations)
+            while brute_run_size <= len(weights):
+                slice_values, slice_weights = values[:brute_run_size], weights[:brute_run_size]
+                if (brute_run_size <= MAX_BRUTE_SIZE):
+                    size, duration=run_brute(max_weight, slice_values, slice_weights)
+                    real_sizes.append(size)
+                    durations.append(duration)
+                brute_run_size+=1
+    save_backup_file("greedy" if run_what=="g" else "brute"+sys.argv[1] if run_what=="b" else "?", real_sizes, durations)
